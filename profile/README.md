@@ -1,7 +1,5 @@
 <div align="center">
-  <img src="./assets/chunbae-logo.png" width="170" alt="춘배투어 로고" />
-  <br />
-  <img src="./assets/chunbae-tour-bus.png" width="720" alt="춘배투어 버스" />
+  <img src="./assets/chunbae-main.png" width="760" alt="춘배투어 대표 이미지" />
   <h1>춘배투어 Chunbae Tour</h1>
   <p>
     여행지를 찾고, 동행을 만나고, 지역 상권과 연결되는<br />
@@ -147,17 +145,15 @@ main merge
 
 ## 🤖 9. AI 협업 개발 방식
 
-춘배투어는 개발 전 과정에서 목적에 맞게 AI 도구를 나누어 활용했습니다. 단순히 AI가 생성한 코드를 붙여 넣는 방식이 아니라, 설계 검토, 구현 초안, 오류 원인 분석, 코드 리뷰 보조, 문서화 보조처럼 역할을 분리해 사용했습니다.
-
-### 활용 도구
+춘배투어는 개발 전 과정에서 목적에 맞게 AI 도구를 나누어 활용했습니다. AI가 제안한 내용을 그대로 적용하지 않고, 공식 문서와 코드 리뷰를 통해 검증한 뒤 실제 코드에 반영했습니다.
 
 | 단계 | 도구 | 활용 내용 |
 | --- | --- | --- |
-| 설계 | Claude, ChatGPT | 시스템 아키텍처 검토, ERD 구조 점검, 도메인 간 의존관계 정리 |
-| 백엔드 개발 | Google Antigravity, Claude, ChatGPT | 기능 구현 초안 작성, 예외 케이스 점검, Redis/JPA/QueryDSL 오류 분석 |
-| 프론트엔드 개발 | Google Antigravity, KIRO, Cursor | 컴포넌트 구현, API 연동 오류 디버깅, 화면 상태 흐름 점검 |
-| 리뷰 / 품질 | CodeRabbit, ChatGPT | PR 리뷰 보조, 테스트 누락 확인, 운영 리스크 점검 |
-| 문서화 | ChatGPT | README, API 테스트 체크리스트, 발표 자료 초안 정리 |
+| 설계 | Claude | 시스템 아키텍처 검토, ERD 구조 점검, 도메인 간 의존관계 정리 |
+| 백엔드 개발 | Google Antigravity, Claude Code, Codex | 기능 구현 초안 작성, 오류 원인 분석, Redis/JPA/QueryDSL 디버깅 |
+| 프론트엔드 개발 | Codex | 컴포넌트 구현 보조, API 연동 흐름 점검, 화면 테스트 체크리스트 정리 |
+| 리뷰 / 품질 | CodeRabbit, Codex, Claude Code | PR 리뷰 보조, 테스트 누락 확인, 운영 리스크 점검 |
+| 문서화 | Claude, ChatGPT | README, API 테스트 체크리스트, 발표 자료 초안 정리 |
 
 ### AI 사용 원칙
 
@@ -171,15 +167,17 @@ main merge
 
 Redis Cluster 전환 과정에서 `RENAME`, `MGET` 같은 multi-key 명령이 CROSSSLOT 오류를 만들 수 있다는 점을 AI 리뷰와 팀 공유를 통해 확인했습니다. 이후 Redis hash tag, 개별 GET/파이프라인 전략, dirty marker 유실 방지 로직을 코드와 테스트로 보강했습니다.
 
-또한 관광지 조회수/좋아요 write-behind 구조를 만들 때 Redis counter와 dirty set을 함께 사용하되, 동기화 중 값이 바뀐 경우 dirty marker를 남겨 다음 배치에서 재처리하도록 설계했습니다. AI 제안은 설계 후보로 활용하고, 최종 구현은 코드 리뷰와 테스트를 기준으로 확정했습니다.
+관광지 조회수/좋아요 write-behind 구조를 만들 때는 Redis counter와 dirty set을 함께 사용하되, 동기화 중 값이 바뀐 경우 dirty marker를 남겨 다음 배치에서 재처리하도록 설계했습니다. AI 제안은 설계 후보로 활용하고, 최종 구현은 코드 리뷰와 테스트를 기준으로 확정했습니다.
 
-## 👥 10. Team
+## 👥 10. 팀원 소개
 
-<div align="center">
-  <img src="./assets/chunbae-mascot.png" width="140" alt="춘배투어 마스코트" />
-</div>
-
-춘배투어는 여행 경험과 지역 상권을 연결하는 서비스를 목표로, 백엔드와 프론트엔드가 함께 API 계약, 화면 흐름, 운영 안정성을 맞춰가며 개발했습니다.
+| 팀원 | 담당 영역 |
+| --- | --- |
+| 임하은 | 매칭, 채팅, 알림, 번역, CS, QA |
+| 정민교 | 회원, 인증, 마이페이지, 관리자, 배포 |
+| 신현민 | 스토어, 결제, 상인, 운영, 프론트엔드 |
+| 박경화 | 커뮤니티, 신고, 축제 캘린더, 발표 |
+| 김인목 | 지도 및 길찾기, 관광지, 검색, 찜, QA |
 
 ---
 
