@@ -1,341 +1,188 @@
-# 춘배투어 Chunbae Tour
+<div align="center">
+  <img src="./assets/chunbae-logo.png" width="170" alt="춘배투어 로고" />
+  <br />
+  <img src="./assets/chunbae-tour-bus.png" width="720" alt="춘배투어 버스" />
+  <h1>춘배투어 Chunbae Tour</h1>
+  <p>
+    여행지를 찾고, 동행을 만나고, 지역 상권과 연결되는<br />
+    <b>지역 기반 여행 경험 통합 플랫폼</b>
+  </p>
+</div>
 
-춘배투어는 여행지를 찾는 순간부터 동행을 만나고, 지역 상점을 이용하고, 결제 이후의 마이페이지 관리까지 이어지는 여행 경험을 다루는 백엔드 프로젝트입니다.
+---
 
-사용자는 관광지와 축제, 전통시장을 검색하고 지도에서 주변 정보를 확인합니다. 마음에 드는 장소는 찜해두고, 동행 게시글과 채팅으로 함께 갈 사람을 찾을 수 있습니다. 지역 상점은 메뉴, 공지, QR 결제, 정산 기능으로 서비스 안에 연결됩니다.
+## 📅 1. 프로젝트 개요 & 개발 일정
 
-## 한눈에 보기
+춘배투어는 관광지와 축제, 전통시장 정보를 기반으로 사용자가 여행지를 탐색하고, 마음에 드는 장소를 저장하며, 동행 모집과 채팅을 통해 함께 여행할 사람을 만날 수 있도록 만든 서비스입니다.
 
-| 항목 | 내용 |
+지역 상권까지 연결해 전통시장, 가게, QR 결제, 엽전 지갑, 상품 주문 흐름을 제공하며, 관리자 기능을 통해 신고, 제재, 배너, 고객센터, 정산 심사 등 운영 업무도 함께 다룹니다.
+
+| 구분 | 내용 |
 | --- | --- |
+| 프로젝트명 | 춘배투어 Chunbae Tour |
 | 서비스 성격 | 여행 정보 탐색 + 동행 커뮤니티 + 지역 상권/결제 플랫폼 |
-| 백엔드 역할 | REST API, WebSocket, 인증/인가, 검색/지도, 결제, 운영 관리 |
-| 운영 환경 | AWS ECS Fargate, RDS MySQL, ElastiCache Redis, S3 |
+| 개발 형태 | 백엔드 / 프론트엔드 / 인프라 협업 프로젝트 |
 | API 문서 | https://chunbae-tour-api.netlify.app/ |
-| 주요 기술 | Spring Boot 4, Java 21, JPA, QueryDSL, Redis, Flyway, WebSocket |
+| 운영 API | https://api.chunbae-tour.site |
 
-## 사용자가 경험하는 흐름
+## 🧭 2. 서비스 핵심 흐름
 
 ```text
-1. 여행지를 찾는다
-   - 통합 검색, 관광지 검색, 축제 검색, 자동완성, 오타 교정
+여행지 탐색
+  -> 관광지 / 축제 / 전통시장 검색
+  -> 지도 마커와 내 주변 장소 확인
+  -> 장소 상세, 리뷰, 찜
 
-2. 지도에서 주변을 본다
-   - 관광지 마커, 내 주변 관광지, 주변 맛집/상점, 길찾기
+동행 경험
+  -> 동행 게시글 작성
+  -> 참여 요청
+  -> 채팅
+  -> 동행 리뷰
 
-3. 마음에 드는 대상을 저장한다
-   - 관광지/축제/전통시장 찜, 마이페이지 찜 목록
+지역 상권 연결
+  -> 전통시장 / 가게 조회
+  -> 메뉴와 공지 확인
+  -> QR 결제
+  -> 엽전 지갑 / 상품 주문
 
-4. 같이 갈 사람을 찾는다
-   - 동행 게시글, 참여 신청, 채팅, 동행 리뷰
-
-5. 지역 상점을 이용한다
-   - 가게 정보, 메뉴, 공지, QR 결제, 엽전
-
-6. 서비스 운영자가 관리한다
-   - 신고, 제재, 배너, FAQ, 고객센터, 관리자 대시보드
+운영 관리
+  -> 신고 / 제재
+  -> 배너 / FAQ / 고객센터
+  -> 정산 / 환불 / 광고 심사
 ```
 
-## 백엔드가 해결하는 문제
+## 🧩 3. 주요 기능
 
-### 빠른 탐색
-
-관광 서비스에서는 사용자가 검색어를 입력하거나 지도를 움직일 때 즉각적인 응답이 중요합니다. 춘배투어는 MySQL Full-Text Index, QueryDSL 동적 쿼리, Redis 캐시, Redis Geo를 조합해 검색과 지도 조회를 처리합니다.
-
-### 실시간 반응
-
-최근 검색어, 인기 검색어, 채팅, 알림, 조회수/좋아요 통계는 사용자의 행동과 함께 계속 변합니다. Redis List/ZSet/PubSub/Counter를 각각의 목적에 맞게 사용해 실시간성과 DB 부하 절감을 함께 가져갑니다.
-
-### 운영 가능한 데이터 변경
-
-공공데이터 동기화, 리뷰/찜/결제/정산처럼 데이터 정합성이 중요한 기능이 많습니다. Flyway로 DB 변경 이력을 관리하고, JPA 트랜잭션과 스케줄러 잠금으로 운영 환경에서의 안정성을 확보합니다.
-
-### 역할별 권한 분리
-
-일반 사용자, 상인, 관리자 권한이 다릅니다. Spring Security와 JWT를 기반으로 API 접근 권한을 분리하고, 관리자 작업은 감사 로그로 추적할 수 있게 구성했습니다.
-
-## 서비스 영역
-
-### 여행 탐색
-
-- 관광지 목록/상세
-- 지도 마커 조회
-- 내 주변 관광지 조회
-- 주변 관광지/상점 추천
-- Kakao 지오코딩, 리버스 지오코딩, 길찾기
-- 홈 추천 관광지
-
-### 검색 경험
-
-- 통합 검색
-- 관광지/축제 검색
-- 자동완성
-- 오타 교정
-- 최근 검색어
-- 인기 검색어
-- 내부 선택용 검색 집계 제외 정책
-
-### 사용자 활동
-
-- 관광지/축제/전통시장 찜
-- 관광지 리뷰
-- 마이페이지 홈
-- 내 찜 목록
-- 내 리뷰 목록
-- 프로필 이미지 업로드
-
-### 커뮤니티와 동행
-
-- 자유 게시글
-- 동행 게시글
-- 댓글/대댓글
-- 채팅방
-- 참여 신청
-- 동행 생성/종료
-- 동행 리뷰
-
-### 지역 상권
-
-- 전통시장 조회/상세
-- 가게 공개 정보
-- 상인 입점 신청
-- 내 가게 관리
-- 메뉴/공지/이미지
-- 광고 신청
-- 정산 계좌/가게 지갑/정산 신청
-
-### 결제와 엽전
-
-- PortOne 충전
-- 결제 취소
-- 환불
-- QR 결제
-- 엽전 잔액
-- 엽전 거래내역
-- 상품 주문
-- 사용자 아이템
-
-### 운영 관리
-
-- 관리자 대시보드
-- 사용자 제재
-- 신고 처리
-- 배너 관리
-- FAQ/고객센터
-- 알림
-- 번역 캐시
-- 관리자 감사 로그
-
-## 기술 구성
-
-### 애플리케이션
-
-| 구분 | 기술 |
+| 영역 | 기능 |
 | --- | --- |
-| 언어 | Java 21 |
-| 프레임워크 | Spring Boot 4.0.6 |
-| API | Spring Web MVC |
-| 실시간 통신 | Spring WebSocket |
-| 인증/인가 | Spring Security, JWT, OAuth(Kakao/Naver) |
-| 데이터 접근 | Spring Data JPA, QueryDSL |
-| DB 마이그레이션 | Flyway |
+| 관광지 / 지도 | 관광지 목록/상세, 지도 마커, 주변 관광지, 주변 맛집/상점, 길찾기 |
+| 검색 | 통합 검색, 장소/축제 검색, 자동완성, 오타 교정, 인기/최근 검색어 |
+| 찜 / 리뷰 | 관광지/축제/전통시장 찜, 관광지 리뷰, 마이페이지 조회 |
+| 축제 / 전통시장 | 축제 달력, 축제 상세, 전통시장 주변 조회, 전통시장 상세 |
+| 커뮤니티 / 동행 | 게시글, 댓글, 동행 모집, 참여 요청, 동행 리뷰 |
+| 채팅 | WebSocket 채팅방, 메시지, 파일 업로드 |
+| 상인 / 가게 | 입점 신청, 가게 관리, 메뉴, 공지, 이미지, 정산, 광고 |
+| 결제 / 엽전 | 충전, 취소, 환불, QR 결제, 엽전 잔액/거래내역 |
+| 관리자 | 사용자 제재, 신고 처리, 배너, FAQ, 고객센터, 심사 업무 |
 
-### 데이터와 인프라
-
-| 구분 | 기술 |
-| --- | --- |
-| RDB | MySQL (local: 8.4, prod: RDS MySQL) |
-| 캐시/랭킹/락 | Redis (local: 7, prod: ElastiCache), Redisson |
-| 스케줄러 락 | ShedLock |
-| 파일 저장 | AWS S3 |
-| 배포 | Docker, AWS ECR, ECS Fargate, ALB |
-| Secret | AWS Secrets Manager |
-| 모니터링 | Actuator, Micrometer Prometheus, ADOT, CloudWatch |
-| 테스트 | JUnit 5, Spring Boot Test, Testcontainers |
-
-### 외부 연동
-
-| 연동 | 사용 기능 |
-| --- | --- |
-| Kakao Local API | 주소 검색, 좌표 변환, 주변 상점 검색 |
-| Kakao Map Link | 길찾기 URL 생성 |
-| 한국관광공사 Tour API | 관광지 데이터 동기화 |
-| 공공데이터포털 | 축제/전통시장 데이터 동기화 |
-| PortOne V2 | 충전, 취소, 환불, QR 결제 |
-| Google Translation API | 번역 |
-
-## 시스템 연결 구조
+## 🏗️ 4. 시스템 구성
 
 ```mermaid
 flowchart TB
-    User[사용자 / 상인 / 관리자] --> Client[Frontend]
-    Client --> API[Spring Boot API]
+    Client[Frontend Client] --> API[Spring Boot API Server]
     Client --> WS[WebSocket]
 
-    API --> Auth[JWT / OAuth / Security]
+    API --> Security[Spring Security / JWT / OAuth]
     API --> Domain[Domain Services]
     WS --> Chat[Chat Service]
 
-    Domain --> DB[(MySQL)]
-    Domain --> Redis[(Redis)]
-    Domain --> S3[(S3)]
+    Domain --> MySQL[(MySQL / RDS)]
+    Domain --> Redis[(Redis / ElastiCache)]
+    Domain --> S3[(AWS S3)]
 
-    Domain --> Kakao[Kakao API]
-    Domain --> Public[Public Data APIs]
-    Domain --> Payment[PortOne]
+    Domain --> Kakao[Kakao Local / Map API]
+    Domain --> PublicData[Tour API / 공공데이터]
+    Domain --> PortOne[PortOne V2]
     Domain --> Translate[Google Translation]
 
     API --> Metrics[Actuator / Prometheus]
     Metrics --> Ops[ADOT / CloudWatch]
 ```
 
-## API 문서
+## 🛠️ 5. 기술 스택
 
-전체 API 명세는 아래 문서에서 확인합니다.
-
-- API 명세서: https://chunbae-tour-api.netlify.app/
-- 운영 API Base URL: `https://api.chunbae-tour.site`
-- 로컬 API Base URL: `http://localhost:8080`
-
-운영 환경에서는 Swagger UI와 API Docs가 비활성화되어 있습니다.
-
-## 대표 API 그룹
-
-| 영역 | 대표 경로 |
+| 구분 | 기술 |
 | --- | --- |
-| 인증/사용자 | `/api/v1/users/auth`, `/api/v1/auth`, `/api/v1/users/me` |
-| 관광지/지도 | `/api/v1/places`, `/api/v1/places/map-markers`, `/api/v1/places/nearby` |
-| 검색 | `/api/v1/search`, `/api/v1/search/places`, `/api/v1/search/suggest` |
-| 축제 | `/api/v1/festivals`, `/api/v1/search/festivals` |
-| 전통시장 | `/api/v1/traditional-markets` |
-| 커뮤니티 | `/api/v1/community/posts` |
-| 채팅/동행 | `/api/v1/chat/rooms`, `/api/v1/companion-reviews` |
-| 상인/가게 | `/api/v1/merchants`, `/api/v1/shops` |
-| 결제/QR | `/api/v1/payments`, `/api/v1/payments/qr` |
-| 스토어/엽전 | `/api/v1/store`, `/api/v1/yeopjeon` |
-| 관리자 | `/api/v1/admin` |
+| Backend | Java 21, Spring Boot 4, Spring Web MVC |
+| Security | Spring Security, JWT, OAuth(Kakao/Naver) |
+| Database | MySQL, Spring Data JPA, QueryDSL, Flyway |
+| Redis | Redis, Redisson, ZSet, List, Geo, Pub/Sub, Distributed Lock |
+| Realtime | Spring WebSocket |
+| Infra | Docker, AWS ECR, ECS Fargate, ALB, RDS, ElastiCache, S3 |
+| Monitoring | Actuator, Micrometer, Prometheus, ADOT, CloudWatch |
+| Test | JUnit 5, Spring Boot Test, Testcontainers |
+| External | Kakao API, Tour API, 공공데이터포털, PortOne V2, Google Translation API |
 
-## 저장소 구조
+## 🔎 6. 도메인 구성
+
+| 도메인 | 설명 |
+| --- | --- |
+| Auth / User | 로그인, OAuth, JWT, 마이페이지, 권한 |
+| Place / Search / Map | 관광지, 검색, 지도, 추천, 카카오 API |
+| Festival / Market | 축제, 전통시장, 공공데이터 동기화 |
+| Community / Companion | 게시글, 댓글, 동행 모집, 동행 리뷰 |
+| Chat / Notification | 채팅, 알림, Redis Pub/Sub |
+| Merchant / Shop | 상인 입점, 가게 관리, 메뉴, 정산, 광고 |
+| Payment / Store / Yeopjeon | 결제, 환불, QR 결제, 엽전, 상품 |
+| Report / CS / Admin | 신고, 제재, 고객센터, 관리자 운영 |
+
+## 🚀 7. 배포와 운영
 
 ```text
-src/main/java/com/chunbaetour/domain
-├── auth               # 인증, OAuth, JWT, 마이페이지
-├── place              # 관광지, 지도, 추천, 리뷰
-├── search             # 통합 검색, 자동완성, 인기/최근 검색어
-├── festival           # 축제
-├── market             # 전통시장
-├── like               # 공통 찜
-├── community          # 게시글, 댓글
-├── chat               # 채팅방, 메시지, 참여 신청
-├── companionreview    # 동행, 동행 리뷰
-├── merchant           # 상인 입점
-├── shop               # 가게, 메뉴, 공지, 이미지, 정산, 광고
-├── payment            # 충전, 환불, QR 결제
-├── store              # 상품, 주문, 아이템
-├── yeopjeon           # 엽전 지갑
-├── report             # 신고, 제재
-├── notification       # 알림
-├── cs                 # FAQ, 고객센터
-├── translation        # 번역
-├── admin              # 관리자 기능
-└── common             # 공통 응답, 예외, 설정, Rate Limit
-```
-
-## 로컬 실행
-
-### 요구사항
-
-- Java 21
-- Docker Desktop
-- Git
-
-### 환경 변수 준비
-
-macOS/Linux:
-
-```bash
-cp .env.example .env
-```
-
-Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-### MySQL / Redis 실행
-
-```powershell
-docker compose up -d
-```
-
-`.env.example` 기준 포트입니다.
-
-| 서비스 | 주소 |
-| --- | --- |
-| MySQL | `localhost:3307` |
-| Redis | `localhost:6380` |
-| API | `http://localhost:8080` |
-
-### 서버 실행
-
-macOS/Linux:
-
-```bash
-./gradlew bootRun
-```
-
-Windows PowerShell:
-
-```powershell
-.\gradlew bootRun
-```
-
-### 테스트
-
-macOS/Linux:
-
-```bash
-./gradlew test
-./gradlew compileTestJava
-```
-
-Windows PowerShell:
-
-```powershell
-.\gradlew test
-.\gradlew compileTestJava
-```
-
-## 배포 흐름
-
-```text
-develop / PR
+Pull Request
   -> GitHub Actions CI
-  -> build
-  -> compileTestJava
-  -> test
+  -> build / compileTestJava / test
 
-main
-  -> GitHub Actions CD
-  -> test gate
+main merge
   -> Docker image build
   -> ECR push
   -> ECS Fargate rolling deployment
   -> ALB health check
 ```
 
-`main` 브랜치로 머지되면 운영 ECS 서비스로 자동 배포됩니다.
+- `main` 브랜치 머지 시 운영 ECS 서비스로 자동 배포됩니다.
+- 배포 실패 시 ECS circuit breaker를 통해 이전 버전으로 롤백됩니다.
+- 운영 Secret은 AWS Secrets Manager를 통해 주입합니다.
+- Actuator와 Prometheus 메트릭을 통해 상태와 지표를 확인합니다.
 
-## 운영 메모
+## 🧯 8. 주요 트러블슈팅
 
-- DB 변경은 Flyway migration으로 관리합니다.
-- 공유 DB에 적용된 migration은 수정하지 않고 새 migration으로 보정합니다.
-- Redis Cluster에서는 multi-key 명령의 slot 제약을 고려합니다.
-- 운영 Secret은 AWS Secrets Manager에서 주입합니다.
-- Actuator는 운영에서 관리 포트 `9090`으로 분리됩니다.
-- API 명세는 Netlify 문서를 기준으로 확인합니다.
+| 이슈 | 해결 방향 |
+| --- | --- |
+| Redis Cluster CROSSSLOT | hash tag 적용, multi-key 명령 제거, 개별 GET/파이프라인 전략 사용 |
+| 인기 검색어 집계 오염 | `track=false`, `source` 정책으로 내부 선택용 검색 제외 |
+| 관광지 통계 동기화 안정성 | Redis counter + dirty set + 조건부 cleanup으로 write-behind 안정화 |
+| Cache Stampede | Redis 분산 락으로 동일 캐시 동시 재생성 방어 |
+| 운영 배포 방식 전환 | EC2 SSH 배포에서 ECS Fargate rolling 배포로 전환 |
 
-## License
+## 🤖 9. AI 협업 개발 방식
 
-이 프로젝트는 MIT License를 따릅니다. 자세한 내용은 [LICENSE](LICENSE)를 참고하세요.
+춘배투어는 개발 전 과정에서 목적에 맞게 AI 도구를 나누어 활용했습니다. 단순히 AI가 생성한 코드를 붙여 넣는 방식이 아니라, 설계 검토, 구현 초안, 오류 원인 분석, 코드 리뷰 보조, 문서화 보조처럼 역할을 분리해 사용했습니다.
+
+### 활용 도구
+
+| 단계 | 도구 | 활용 내용 |
+| --- | --- | --- |
+| 설계 | Claude, ChatGPT | 시스템 아키텍처 검토, ERD 구조 점검, 도메인 간 의존관계 정리 |
+| 백엔드 개발 | Google Antigravity, Claude, ChatGPT | 기능 구현 초안 작성, 예외 케이스 점검, Redis/JPA/QueryDSL 오류 분석 |
+| 프론트엔드 개발 | Google Antigravity, KIRO, Cursor | 컴포넌트 구현, API 연동 오류 디버깅, 화면 상태 흐름 점검 |
+| 리뷰 / 품질 | CodeRabbit, ChatGPT | PR 리뷰 보조, 테스트 누락 확인, 운영 리스크 점검 |
+| 문서화 | ChatGPT | README, API 테스트 체크리스트, 발표 자료 초안 정리 |
+
+### AI 사용 원칙
+
+- AI가 제안한 코드는 반드시 이해한 뒤 적용했습니다.
+- 동작 원리를 설명할 수 없는 코드는 머지하지 않는 것을 원칙으로 삼았습니다.
+- Spring, Redis, AWS, PortOne 등 공식 문서와 교차 검증한 뒤 실제 코드에 반영했습니다.
+- AI 답변이 서로 충돌하거나 확신이 낮은 경우 팀원, 튜터, PR 리뷰를 통해 최종 결정을 내렸습니다.
+- 운영 데이터에 영향을 줄 수 있는 변경은 테스트와 리뷰를 거쳐 반영했습니다.
+
+### 프로젝트 적용 예시
+
+Redis Cluster 전환 과정에서 `RENAME`, `MGET` 같은 multi-key 명령이 CROSSSLOT 오류를 만들 수 있다는 점을 AI 리뷰와 팀 공유를 통해 확인했습니다. 이후 Redis hash tag, 개별 GET/파이프라인 전략, dirty marker 유실 방지 로직을 코드와 테스트로 보강했습니다.
+
+또한 관광지 조회수/좋아요 write-behind 구조를 만들 때 Redis counter와 dirty set을 함께 사용하되, 동기화 중 값이 바뀐 경우 dirty marker를 남겨 다음 배치에서 재처리하도록 설계했습니다. AI 제안은 설계 후보로 활용하고, 최종 구현은 코드 리뷰와 테스트를 기준으로 확정했습니다.
+
+## 👥 10. Team
+
+<div align="center">
+  <img src="./assets/chunbae-mascot.png" width="140" alt="춘배투어 마스코트" />
+</div>
+
+춘배투어는 여행 경험과 지역 상권을 연결하는 서비스를 목표로, 백엔드와 프론트엔드가 함께 API 계약, 화면 흐름, 운영 안정성을 맞춰가며 개발했습니다.
+
+---
+
+<div align="center">
+  <b>즐거운 여행, 춘배와 함께!</b>
+</div>
